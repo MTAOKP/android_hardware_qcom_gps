@@ -57,6 +57,10 @@
 /* Logging */
 #define LOG_TAG "loc_api_rpc_glue"
 #define LOG_NDDEBUG 0
+#define LOGD
+#define LOGE
+#define LOGV
+#define LOGW
 #include <utils/Log.h>
 
 /* Uncomment to force LOGD messages */

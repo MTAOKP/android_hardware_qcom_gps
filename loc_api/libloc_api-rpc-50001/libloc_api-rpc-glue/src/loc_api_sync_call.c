@@ -39,6 +39,7 @@
 
 /* Logging */
 #define LOG_TAG "loc_api_rpc_glue"
+#define LOGE
 // #define LOG_NDDEBUG 0
 #include <utils/Log.h>
 

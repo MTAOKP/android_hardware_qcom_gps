@@ -29,6 +29,8 @@
 
 #ifndef LOC_ENG_CFG_H
 #define LOC_ENG_CFG_H
+#define LOGD
+#define LOGW
 
 #define LOC_MAX_PARAM_NAME                 36
 #define LOC_MAX_PARAM_STRING               80

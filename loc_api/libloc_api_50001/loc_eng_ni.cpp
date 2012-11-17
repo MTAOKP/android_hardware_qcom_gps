@@ -29,6 +29,11 @@
 
 #define LOG_NDDEBUG 0
 #define LOG_NIDEBUG 0
+#define LOGE
+#define LOGD
+#define LOGW
+#define LOGV
+#define LOGI
 
 #include <stdio.h>
 #include <stdlib.h>

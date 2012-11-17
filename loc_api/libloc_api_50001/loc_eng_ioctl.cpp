@@ -28,6 +28,8 @@
  */
 
 #define LOG_NDDEBUG 0
+#define LOGE
+#define LOGD
 
 #include <stdio.h>
 #include <stdlib.h>
