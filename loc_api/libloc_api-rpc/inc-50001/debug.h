@@ -24,80 +24,46 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
-#ifndef LOC_ENG_DBG_H
-#define LOC_ENG_DBG_H
-
-#ifndef DEBUG_X86
-
-#define LOG_NDDEBUG 0
-#define LOG_NIDEBUG 0
-#define LOG_NVDEBUG 0
-
-#define LOG_TAG "libloc"
-#include <utils/Log.h>
-
-#ifndef DEBUG_DMN_LOC_API
-
-#include <rpc/rpc.h>
-#include "loc_api_rpc_glue.h"
-#include "loc_apicb_appinit.h"
-
-#include <hardware/gps.h>
-#include <cutils/properties.h>
-#include <string.h>
-
-#include <loc_eng_log.h>
-#include <loc_eng_cfg.h>
-
-/* LOGGING MACROS */
-#define LOC_LOGE(...) \
-if (gps_conf.DEBUG_LEVEL >= 1) { LOGE(__VA_ARGS__); }
-
-#define LOC_LOGW(...) \
-if (gps_conf.DEBUG_LEVEL >= 2) { LOGW(__VA_ARGS__); }
-
-#define LOC_LOGI(...) \
-if (gps_conf.DEBUG_LEVEL >= 3) { LOGI(__VA_ARGS__); }
-
-#define LOC_LOGD(...) \
-if (gps_conf.DEBUG_LEVEL >= 4) { LOGD(__VA_ARGS__); }
-
-#define LOC_LOGV(...) \
-if (gps_conf.DEBUG_LEVEL >= 5) { LOGV(__VA_ARGS__); }
-
-#else /* DEBUG_DMN_LOC_API */
-
-#define LOC_LOGE(...) LOGE(__VA_ARGS__)
-
-#define LOC_LOGW(...) LOGW(__VA_ARGS__)
-
-#define LOC_LOGI(...) LOGI(__VA_ARGS__)
-
-#define LOC_LOGD(...) LOGD(__VA_ARGS__)
-
-#define LOC_LOGV(...) LOGV(__VA_ARGS__)
-
-#endif /* DEBUG_DMN_LOC_API */
-
-#else /* DEBUG_X86 */
+#ifndef DEBUG_H
+#define DEBUG_H
 
 #include <stdio.h>
 
-#define FPRINTF fprintf
+#define LOG_TAG "libgps-rpc"
+#include <utils/Log.h>
 
-#define LOC_LOGE(...) FPRINTF(stderr, __VA_ARGS__)
+#define PRINT(x...) do {                                    \
+        fprintf(stdout, "%s(%d) ", __FUNCTION__, __LINE__); \
+        fprintf(stdout, ##x);                               \
+        LOGD(x);                               \
+    } while(0)
 
-#define LOC_LOGW(...) FPRINTF(stderr, __VA_ARGS__)
+#ifdef DEBUG
+#define D PRINT
+#else
+#define D(x...) do { } while(0)
+#endif
 
-#define LOC_LOGI(...) FPRINTF(stderr, __VA_ARGS__)
+#ifdef VERBOSE
+#define V PRINT
+#else
+#define V(x...) do { } while(0)
+#endif
 
-#define LOC_LOGD(...) FPRINTF(stderr, __VA_ARGS__)
+#define E(x...) do {                                        \
+        fprintf(stderr, "%s(%d) ", __FUNCTION__, __LINE__); \
+        fprintf(stderr, ##x);                               \
+        LOGE(x);                                            \
+    } while(0)
 
-#define LOC_LOGV(...) FPRINTF(stderr, __VA_ARGS__)
+#define FAILIF(cond, msg...) do {                                              \
+        if (__builtin_expect (cond, 0)) {                                      \
+            fprintf(stderr, "%s:%s:(%d): ", __FILE__, __FUNCTION__, __LINE__); \
+            fprintf(stderr, ##msg);                                            \
+            LOGE(##msg);                                                       \
+        }                                                                      \
+    } while(0)
 
-#endif /* DEBUG_X86 */
-
-#endif // LOC_ENG_DBG_H
+#endif/*DEBUG_H*/

@@ -54,7 +54,7 @@ static int loc_api_server_proc_init(void *context)
     /* share the ctrl q.
      * @todo what if the buffer is full? Non atomic may cause message mess up in the q */
     daemon_manager_msgqid = loc_eng_dmn_conn_glue_msgget(global_ctrl_q_path, O_RDWR);
-    LOC_LOGD("%s:%d] loc_api_server_msgqid = %d\n", __func__, __LINE__, loc_api_server_msgqid);
+    ALOGD("%s:%d] loc_api_server_msgqid = %d\n", __func__, __LINE__, loc_api_server_msgqid);
     return 0;
 }
 
@@ -75,20 +75,20 @@ static int loc_api_server_proc(void *context)
     p_cmsgbuf = (struct ctrl_msgbuf *) malloc(sz);
 
     if (!p_cmsgbuf) {
-        LOC_LOGE("%s:%d] Out of memory\n", __func__, __LINE__);
+        ALOGE("%s:%d] Out of memory\n", __func__, __LINE__);
         return -1;
     }
 
     cnt ++;
-    LOC_LOGD("%s:%d] %d listening on %s...\n", __func__, __LINE__, cnt, (char *) context);
+    ALOGD("%s:%d] %d listening on %s...\n", __func__, __LINE__, cnt, (char *) context);
     length = loc_eng_dmn_conn_glue_msgrcv(loc_api_server_msgqid, p_cmsgbuf, sz);
     if (length <= 0) {
-        LOC_LOGE("%s:%d] fail receiving msg from gpsone_daemon, retry later\n", __func__, __LINE__);
+        ALOGE("%s:%d] fail receiving msg from gpsone_daemon, retry later\n", __func__, __LINE__);
         usleep(1000);
         return 0;
     }
 
-    LOC_LOGD("%s:%d] received ctrl_type = %d\n", __func__, __LINE__, p_cmsgbuf->ctrl_type);
+    ALOGD("%s:%d] received ctrl_type = %d\n", __func__, __LINE__, p_cmsgbuf->ctrl_type);
     switch(p_cmsgbuf->ctrl_type) {
         case GPSONE_LOC_API_IF_REQUEST:
             result = loc_eng_dmn_conn_loc_api_server_if_request_handler(p_cmsgbuf, length);
@@ -99,27 +99,27 @@ static int loc_api_server_proc(void *context)
             break;
 
         case GPSONE_UNBLOCK:
-            LOC_LOGD("%s:%d] GPSONE_UNBLOCK\n", __func__, __LINE__);
+            ALOGD("%s:%d] GPSONE_UNBLOCK\n", __func__, __LINE__);
             break;
 
         default:
-            LOC_LOGE("%s:%d] unsupported ctrl_type = %d\n",
+            ALOGE("%s:%d] unsupported ctrl_type = %d\n",
                 __func__, __LINE__, p_cmsgbuf->ctrl_type);
             break;
     }
 
     cmsg_resp.cmsg.cmsg_response.result = result;
     cmsg_resp.ctrl_type = GPSONE_LOC_API_RESPONSE;
-LOC_LOGD("%s:%d] ctrl_type = %d\n", __func__, __LINE__, cmsg_resp.ctrl_type);
+ALOGD("%s:%d] ctrl_type = %d\n", __func__, __LINE__, cmsg_resp.ctrl_type);
     length = loc_eng_dmn_conn_glue_msgsnd(daemon_manager_msgqid, (void *) & cmsg_resp, sizeof(cmsg_resp));
-    LOC_LOGD("%s:%d] replied ctrl_type = %d\n", __func__, __LINE__, cmsg_resp.ctrl_type);
+    ALOGD("%s:%d] replied ctrl_type = %d\n", __func__, __LINE__, cmsg_resp.ctrl_type);
     free(p_cmsgbuf);
     return 0;
 }
 
 static int loc_api_server_proc_post(void *context)
 {
-    LOC_LOGD("%s:%d]\n", __func__, __LINE__);
+    ALOGD("%s:%d]\n", __func__, __LINE__);
     loc_eng_dmn_conn_glue_msgremove( global_loc_api_q_path, loc_api_server_msgqid);
     loc_eng_dmn_conn_glue_msgremove( global_ctrl_q_path, daemon_manager_msgqid);
     return 0;
@@ -129,7 +129,7 @@ static int loc_eng_dmn_conn_unblock_proc(void)
 {
     struct ctrl_msgbuf cmsgbuf;
     cmsgbuf.ctrl_type = GPSONE_UNBLOCK;
-    LOC_LOGD("%s:%d]\n", __func__, __LINE__);
+    ALOGD("%s:%d]\n", __func__, __LINE__);
     loc_eng_dmn_conn_glue_msgsnd(loc_api_server_msgqid, & cmsgbuf, sizeof(cmsgbuf));
     return 0;
 }
@@ -150,7 +150,7 @@ int loc_eng_dmn_conn_loc_api_server_launch(const char * loc_api_q_path, const ch
         loc_api_server_proc_post,
         (char *) global_loc_api_q_path);
     if (result != 0) {
-        LOC_LOGE("%s:%d]\n", __func__, __LINE__);
+        ALOGE("%s:%d]\n", __func__, __LINE__);
         return -1;
     }
     return 0;

@@ -24,80 +24,22 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
-#ifndef LOC_ENG_DBG_H
-#define LOC_ENG_DBG_H
+#ifndef LOC_APICB_APPINIT_H
+#define LOC_APICB_APPINIT_H
 
-#ifndef DEBUG_X86
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
-#define LOG_NDDEBUG 0
-#define LOG_NIDEBUG 0
-#define LOG_NVDEBUG 0
+ /* Initialization function for callbacks */
+extern int loc_apicb_app_init();
+extern void loc_apicb_app_deinit();
 
-#define LOG_TAG "libloc"
-#include <utils/Log.h>
+#ifdef __cplusplus
+}
+#endif
 
-#ifndef DEBUG_DMN_LOC_API
-
-#include <rpc/rpc.h>
-#include "loc_api_rpc_glue.h"
-#include "loc_apicb_appinit.h"
-
-#include <hardware/gps.h>
-#include <cutils/properties.h>
-#include <string.h>
-
-#include <loc_eng_log.h>
-#include <loc_eng_cfg.h>
-
-/* LOGGING MACROS */
-#define LOC_LOGE(...) \
-if (gps_conf.DEBUG_LEVEL >= 1) { LOGE(__VA_ARGS__); }
-
-#define LOC_LOGW(...) \
-if (gps_conf.DEBUG_LEVEL >= 2) { LOGW(__VA_ARGS__); }
-
-#define LOC_LOGI(...) \
-if (gps_conf.DEBUG_LEVEL >= 3) { LOGI(__VA_ARGS__); }
-
-#define LOC_LOGD(...) \
-if (gps_conf.DEBUG_LEVEL >= 4) { LOGD(__VA_ARGS__); }
-
-#define LOC_LOGV(...) \
-if (gps_conf.DEBUG_LEVEL >= 5) { LOGV(__VA_ARGS__); }
-
-#else /* DEBUG_DMN_LOC_API */
-
-#define LOC_LOGE(...) LOGE(__VA_ARGS__)
-
-#define LOC_LOGW(...) LOGW(__VA_ARGS__)
-
-#define LOC_LOGI(...) LOGI(__VA_ARGS__)
-
-#define LOC_LOGD(...) LOGD(__VA_ARGS__)
-
-#define LOC_LOGV(...) LOGV(__VA_ARGS__)
-
-#endif /* DEBUG_DMN_LOC_API */
-
-#else /* DEBUG_X86 */
-
-#include <stdio.h>
-
-#define FPRINTF fprintf
-
-#define LOC_LOGE(...) FPRINTF(stderr, __VA_ARGS__)
-
-#define LOC_LOGW(...) FPRINTF(stderr, __VA_ARGS__)
-
-#define LOC_LOGI(...) FPRINTF(stderr, __VA_ARGS__)
-
-#define LOC_LOGD(...) FPRINTF(stderr, __VA_ARGS__)
-
-#define LOC_LOGV(...) FPRINTF(stderr, __VA_ARGS__)
-
-#endif /* DEBUG_X86 */
-
-#endif // LOC_ENG_DBG_H
+#endif /* LOC_APICB_APPINIT_H */

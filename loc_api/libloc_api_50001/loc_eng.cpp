@@ -28,10 +28,6 @@
  */
 
 #define LOG_NDDEBUG 0
-#define LOGE
-#define LOGD
-#define LOGV
-#define LOGW
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -168,7 +164,7 @@ int loc_c2k_addr_is_set = 0;
   if (!loc_eng_inited) \
   { \
      /* Not intialized, abort */ \
-     LOC_LOGE("%s: GPS not initialized.", x); \
+     ALOGE("%s: GPS not initialized.", x); \
      return c; \
   }
 #define INIT_CHECK(x) INIT_CHECK_RET(x, RPC_LOC_API_INVALID_HANDLE)
@@ -199,7 +195,7 @@ const GpsInterface* gps_get_hardware_interface ()
    property_get("gps.disable", propBuf, "");
    if (propBuf[0] == '1')
    {
-      LOC_LOGD("gps_get_interface returning NULL because gps.disable=1\n");
+      ALOGD("gps_get_interface returning NULL because gps.disable=1\n");
       return NULL;
    }
 
@@ -228,10 +224,10 @@ SIDE EFFECTS
 
 static int loc_eng_init(GpsCallbacks* callbacks)
 {
-   LOC_LOGD("loc_eng_init entering");
+   ALOGD("loc_eng_init entering");
 #if DISABLE_CLEANUP
     if (loc_eng_data.deferred_action_thread) {
-        LOC_LOGD("loc_eng_init. already initialized so return SUCCESS\n");
+        ALOGD("loc_eng_init. already initialized so return SUCCESS\n");
         return 0;
     }
 #endif
@@ -244,7 +240,7 @@ static int loc_eng_init(GpsCallbacks* callbacks)
    {
       loc_eng_deinit();       /* stop the active client */
 #ifdef FEATURE_GNSS_BIT_API
-      LOC_LOGD("KD: Enable GNSS features\n");
+      ALOGD("KD: Enable GNSS features\n");
       loc_eng_dmn_conn_loc_api_server_unblock();
       loc_eng_dmn_conn_loc_api_server_join();
 #endif /* FEATURE_GNSS_BIT_API */
@@ -308,7 +304,7 @@ static int loc_eng_init(GpsCallbacks* callbacks)
    loc_eng_data.xtra_module_data.download_request_cb = NULL;
 
    loc_eng_inited = 1;
-   LOC_LOGD("loc_eng_init created client, id = %d\n", (int32) loc_eng_data.client_handle);
+   ALOGD("loc_eng_init created client, id = %d\n", (int32) loc_eng_data.client_handle);
 
    return 0;
 }
@@ -332,20 +328,20 @@ SIDE EFFECTS
 ===========================================================================*/
 static int loc_eng_deinit()
 {
-   LOC_LOGD("loc_eng_deinit called");
+   ALOGD("loc_eng_deinit called");
 
    if (loc_eng_inited == 1)
    {
       if (loc_eng_data.navigating)
       {
-         LOC_LOGD("loc_eng_init: fix not stopped. stop it now.");
+         ALOGD("loc_eng_init: fix not stopped. stop it now.");
          loc_eng_stop();
          loc_eng_data.navigating = FALSE;
       }
 
       if (loc_eng_data.client_opened)
       {
-         LOC_LOGD("loc_eng_init: client opened. close it now.");
+         ALOGD("loc_eng_init: client opened. close it now.");
          loc_close(loc_eng_data.client_handle);
          loc_eng_data.client_opened = FALSE;
       }
@@ -427,7 +423,7 @@ static int loc_eng_start()
    int ret_val;
    int	sync_handle;
 
-   LOC_LOGD("loc_eng_start called");
+   ALOGD("loc_eng_start called");
 
 #ifdef	BOARD_VENDOR_QCOM_GPS_NEEDS_LNA
 // KD - open the LNA on an init if it is not already open.
@@ -436,9 +432,9 @@ static int loc_eng_start()
    if (sync_handle >= 0) {
 	ioctl(sync_handle, 0, NULL);	/* Turn on the LNA */
 	close(sync_handle);
-	LOC_LOGD("Enable LNA");
+	ALOGD("Enable LNA");
    } else {
-	LOC_LOGD("Cannot enable LNA - error %d", errno);
+	ALOGD("Cannot enable LNA - error %d", errno);
    }
 #endif
 
@@ -446,7 +442,7 @@ static int loc_eng_start()
 
    if (ret_val != RPC_LOC_API_SUCCESS)
    {
-      LOC_LOGE("loc_eng_start error, rc = %d\n", ret_val);
+      ALOGE("loc_eng_start error, rc = %d\n", ret_val);
    }
    else {
       loc_eng_data.navigating = TRUE;
@@ -478,7 +474,7 @@ static int loc_eng_stop()
    int ret_val;
    int	sync_handle;
 
-   LOC_LOGD("loc_eng_stop called");
+   ALOGD("loc_eng_stop called");
 
 #ifdef	BOARD_VENDOR_QCOM_GPS_NEEDS_LNA
 // KD - Close the LNA channel when the client shuts down
@@ -486,10 +482,10 @@ static int loc_eng_stop()
    sync_handle = open("/dev/gps_sync", O_RDWR);	/* Get the handle */
    if (sync_handle >= 0) {
 	ioctl(sync_handle, 1, NULL);	/* Turn off the LNA */
-	LOC_LOGD("Disable LNA");
+	ALOGD("Disable LNA");
 	close(sync_handle);
    } else {
-	LOC_LOGD("LNA control channel disable failed %d", errno);
+	ALOGD("LNA control channel disable failed %d", errno);
    }
 #endif
 
@@ -499,7 +495,7 @@ static int loc_eng_stop()
     if (loc_eng_data.agps_request_pending)
     {
         loc_eng_data.stop_request_pending = true;
-        LOC_LOGD("loc_eng_stop - deferring stop until AGPS data call is finished\n");
+        ALOGD("loc_eng_stop - deferring stop until AGPS data call is finished\n");
         pthread_mutex_unlock(&(loc_eng_data.deferred_stop_mutex));
         return 0;
     }
@@ -508,7 +504,7 @@ static int loc_eng_stop()
    ret_val = loc_stop_fix(loc_eng_data.client_handle);
    if (ret_val != RPC_LOC_API_SUCCESS)
    {
-      LOC_LOGE("loc_eng_stop error, rc = %d\n", ret_val);
+      ALOGE("loc_eng_stop error, rc = %d\n", ret_val);
    }
    else {
       if (loc_eng_data.fix_session_status != GPS_STATUS_SESSION_BEGIN)
@@ -540,11 +536,11 @@ SIDE EFFECTS
 void loc_eng_mute_one_session()
 {
    INIT_CHECK_VOID("loc_eng_mute_one_session");
-   LOC_LOGD("loc_eng_mute_one_session");
+   ALOGD("loc_eng_mute_one_session");
 
    pthread_mutex_lock(&loc_eng_data.mute_session_lock);
    loc_eng_data.mute_session_state = LOC_MUTE_SESS_WAIT;
-   LOC_LOGV("loc_eng_report_status: mute_session_state changed to WAIT");
+   ALOGV("loc_eng_report_status: mute_session_state changed to WAIT");
    pthread_mutex_unlock(&loc_eng_data.mute_session_lock);
 }
 
@@ -575,25 +571,25 @@ static int  loc_eng_set_position_mode(GpsPositionMode mode, GpsPositionRecurrenc
    rpc_loc_operation_mode_e_type op_mode;
    boolean                      ret_val;
 
-   LOGD ("loc_eng_set_position mode, client = %d, interval = %d, mode = %d\n",
+   ALOGD ("loc_eng_set_position mode, client = %d, interval = %d, mode = %d\n",
             (int32) loc_eng_data.client_handle, min_interval, mode);
 
    switch (mode)
    {
    case GPS_POSITION_MODE_MS_BASED:
-      LOGD("Requested MS_BASED mode\n");
+      ALOGD("Requested MS_BASED mode\n");
       op_mode = RPC_LOC_OPER_MODE_MSB;
       break;
    case GPS_POSITION_MODE_MS_ASSISTED:
-      LOGD("Requesting MS_ASSISTED mode\n");
+      ALOGD("Requesting MS_ASSISTED mode\n");
       op_mode = RPC_LOC_OPER_MODE_MSA;
       break;
    default:
-      LOGD("Requesting STANDALONE mode\n");
+      ALOGD("Requesting STANDALONE mode\n");
       op_mode = RPC_LOC_OPER_MODE_STANDALONE;
    }
 #ifdef	BOARD_VENDOR_QCOM_GPS_HAS_BROKEN_XTRA
-      LOGD("OVERRIDE to STANDALONE mode - XTRA is broken\n");
+      ALOGD("OVERRIDE to STANDALONE mode - XTRA is broken\n");
       op_mode = RPC_LOC_OPER_MODE_STANDALONE;
 #endif
 
@@ -639,7 +635,7 @@ static int  loc_eng_set_position_mode(GpsPositionMode mode, GpsPositionRecurrenc
 
    if (ret_val != TRUE)
    {
-      LOC_LOGE("loc_eng_set_position mode failed\n");
+      ALOGE("loc_eng_set_position mode failed\n");
    }
 
    return 0;
@@ -671,8 +667,8 @@ static int loc_eng_inject_time(GpsUtcTime time, int64_t timeReference, int uncer
    boolean                          ret_val;
 
 #ifdef	BOARD_VENDOR_QCOM_GPS_HAS_BROKEN_XTRA
-//   LOC_LOGD ("loc_eng_inject_time, uncertainty = %d\n", uncertainty);
-   LOC_LOGD ("KD loc_eng_inject_time DISABLED, uncertainty = %d\n", uncertainty);
+//   ALOGD ("loc_eng_inject_time, uncertainty = %d\n", uncertainty);
+   ALOGD ("KD loc_eng_inject_time DISABLED, uncertainty = %d\n", uncertainty);
    return RPC_LOC_API_SUCCESS;
 #endif
 
@@ -690,7 +686,7 @@ static int loc_eng_inject_time(GpsUtcTime time, int64_t timeReference, int uncer
 
    if (ret_val != TRUE)
    {
-      LOC_LOGE ("loc_eng_inject_time failed\n");
+      ALOGE ("loc_eng_inject_time failed\n");
    }
 
    return RPC_LOC_API_SUCCESS;
@@ -738,7 +734,7 @@ static int loc_eng_inject_location(double latitude, double longitude, float accu
    assistance_data_position->confidence_horizontal = 63;  /* 63% (1 std dev) assumed */
 
    /* Log */
-   LOC_LOGD("Inject coarse position Lat=%lf, Lon=%lf, Acc=%.2lf\n",
+   ALOGD("Inject coarse position Lat=%lf, Lon=%lf, Acc=%.2lf\n",
          (double) assistance_data_position->latitude,
          (double) assistance_data_position->longitude,
          (double) assistance_data_position->hor_unc_circular);
@@ -751,7 +747,7 @@ static int loc_eng_inject_location(double latitude, double longitude, float accu
          LOC_IOCTL_DEFAULT_TIMEOUT,
          NULL /* No output information is expected*/))
    {
-      LOC_LOGE("loc_eng_inject_injection failed.\n");
+      ALOGE("loc_eng_inject_injection failed.\n");
       return RPC_LOC_API_GENERAL_FAILURE;
    }
 
@@ -818,27 +814,27 @@ SIDE EFFECTS
 ===========================================================================*/
 static const void* loc_eng_get_extension(const char* name)
 {
-   LOC_LOGD("KD loc_eng_get_extension: %s\n", name);
+   ALOGD("KD loc_eng_get_extension: %s\n", name);
     
    if (strcmp(name, GPS_XTRA_INTERFACE) == 0)
    {
-      LOC_LOGD("KD loc_eng_get_extension XTRA\n");
+      ALOGD("KD loc_eng_get_extension XTRA\n");
       return &sLocEngXTRAInterface;
    }
 
    else if (strcmp(name, AGPS_INTERFACE) == 0)
    {
-      LOC_LOGD("KD loc_eng_get_extension AGPS\n");
+      ALOGD("KD loc_eng_get_extension AGPS\n");
       return &sLocEngAGpsInterface;
    }
 
    else if (strcmp(name, GPS_NI_INTERFACE) == 0)
    {
-      LOC_LOGD("KD loc_eng_get_extension NI\n");
+      ALOGD("KD loc_eng_get_extension NI\n");
       return &sLocEngNiInterface;
    }
 
-   LOC_LOGD("KD loc_eng_get_extension NONE\n");
+   ALOGD("KD loc_eng_get_extension NONE\n");
    return NULL;
 }
 
@@ -864,7 +860,7 @@ static void loc_inform_gps_status(GpsStatusValue status)
 
    GpsStatus gs = { sizeof(gs),status };
 
-   LOC_LOGD("loc_inform_gps_status, status: %s", loc_get_gps_status_name(status));
+   ALOGD("loc_inform_gps_status, status: %s", loc_get_gps_status_name(status));
 
    if (loc_eng_data.status_cb)
    {
@@ -987,7 +983,7 @@ static int32 loc_event_cb
 
    if (client_handle != loc_eng_data.client_handle)
    {
-      LOC_LOGE("loc client mismatch: received = %d, expected = %d \n",
+      ALOGE("loc client mismatch: received = %d, expected = %d \n",
             (int32) client_handle, (int32) loc_eng_data.client_handle);
       return RPC_LOC_API_SUCCESS; /* Exit with OK */
    }
@@ -1095,25 +1091,25 @@ static void loc_eng_report_position(const rpc_loc_parsed_position_s_type *locati
              (location_report_ptr->valid_mask & RPC_LOC_POS_VALID_HOR_UNC_CIRCULAR) &&
                location_report_ptr->hor_unc_circular > gps_conf.ACCURACY_THRES)
          {
-            LOC_LOGW("loc_eng_report_position: ignore intermediate position with error %.2f > %ld meters\n",
+            ALOGW("loc_eng_report_position: ignore intermediate position with error %.2f > %ld meters\n",
                   location_report_ptr->hor_unc_circular, gps_conf.ACCURACY_THRES);
             filter_out = TRUE;
          }
 
          if (loc_eng_data.location_cb != NULL && !filter_out)
          {
-            LOC_LOGV("loc_eng_report_position: fire callback\n");
+            ALOGV("loc_eng_report_position: fire callback\n");
             loc_eng_data.location_cb(&location);
          }
       }
       else
       {
-         LOC_LOGV("loc_eng_report_position: ignore position report when session status = %d\n", location_report_ptr->session_status);
+         ALOGV("loc_eng_report_position: ignore position report when session status = %d\n", location_report_ptr->session_status);
       }
    }
    else
    {
-      LOC_LOGV("loc_eng_report_position: ignore position report when session status is not set\n");
+      ALOGV("loc_eng_report_position: ignore position report when session status is not set\n");
    }
 }
 
@@ -1139,7 +1135,7 @@ static void loc_eng_report_sv (const rpc_loc_gnss_info_s_type *gnss_report_ptr)
    int             num_svs_max, i;
     const rpc_loc_sv_info_s_type *sv_info_ptr;
 
-   // LOC_LOGD ("loc_eng_report_sv: valid_mask = 0x%x, num of sv = %d\n",
+   // ALOGD ("loc_eng_report_sv: valid_mask = 0x%x, num of sv = %d\n",
    //        (uint32) gnss_report_ptr->valid_mask,
    //        gnss_report_ptr->sv_count);
 
@@ -1225,7 +1221,7 @@ static void loc_eng_report_sv (const rpc_loc_gnss_info_s_type *gnss_report_ptr)
       }
    }
 
-   // LOC_LOGD ("num_svs = %d, eph mask = %d, alm mask = %d\n", SvStatus.num_svs, SvStatus.ephemeris_mask, SvStatus.almanac_mask );
+   // ALOGD ("num_svs = %d, eph mask = %d, alm mask = %d\n", SvStatus.num_svs, SvStatus.ephemeris_mask, SvStatus.almanac_mask );
    if ((SvStatus.num_svs != 0) && (loc_eng_data.sv_status_cb != NULL))
    {
       loc_eng_data.sv_status_cb(&SvStatus);
@@ -1252,7 +1248,7 @@ static void loc_eng_report_status (const rpc_loc_status_event_s_type *status_rep
 {
    GpsStatusValue status;
 
-   LOC_LOGD("loc_eng_report_status: event = %d engine_state = %d\n",
+   ALOGD("loc_eng_report_status: event = %d engine_state = %d\n",
             status_report_ptr->event, status_report_ptr->payload.rpc_loc_status_event_payload_u_type_u.engine_state);
 
    status = GPS_STATUS_NONE;
@@ -1290,7 +1286,7 @@ static void loc_eng_report_status (const rpc_loc_status_event_s_type *status_rep
    {
       if (loc_eng_data.mute_session_state == LOC_MUTE_SESS_WAIT)
       {
-         LOC_LOGV("loc_eng_report_status: mute_session_state changed from WAIT to IN SESSION");
+         ALOGV("loc_eng_report_status: mute_session_state changed from WAIT to IN SESSION");
          loc_eng_data.mute_session_state = LOC_MUTE_SESS_IN_SESSION;
       }
    }
@@ -1299,14 +1295,14 @@ static void loc_eng_report_status (const rpc_loc_status_event_s_type *status_rep
    if (loc_eng_data.mute_session_state == LOC_MUTE_SESS_IN_SESSION &&
        (status == GPS_STATUS_SESSION_END || status == GPS_STATUS_ENGINE_OFF))
    {
-      LOC_LOGV("loc_eng_report_status: mute_session_state changed from IN SESSION to NONE");
+      ALOGV("loc_eng_report_status: mute_session_state changed from IN SESSION to NONE");
       loc_eng_data.mute_session_state = LOC_MUTE_SESS_NONE;
    }
 
    // Session End is not reported during Android navigating state
    if (status != GPS_STATUS_NONE && !(status == GPS_STATUS_SESSION_END && loc_eng_data.navigating))
    {
-      LOC_LOGV("loc_eng_report_status: issue callback with status %d\n", status);
+      ALOGV("loc_eng_report_status: issue callback with status %d\n", status);
 
       if (loc_eng_data.mute_session_state != LOC_MUTE_SESS_IN_SESSION)
       {
@@ -1314,7 +1310,7 @@ static void loc_eng_report_status (const rpc_loc_status_event_s_type *status_rep
          loc_inform_gps_status(status);
       }
       else {
-         LOC_LOGV("loc_eng_report_status: muting the status report.");
+         ALOGV("loc_eng_report_status: muting the status report.");
       }
    }
 
@@ -1378,7 +1374,7 @@ static void loc_eng_report_nmea(const rpc_loc_nmea_report_s_type *nmea_report_pt
             nmea_report_ptr->nmea_sentences.nmea_sentences_len);
 #else
       loc_eng_data.nmea_cb(now, nmea_report_ptr->nmea_sentences, nmea_report_ptr->length);
-      LOC_LOGD("loc_eng_report_nmea: $%c%c%c\n",
+      ALOGD("loc_eng_report_nmea: $%c%c%c\n",
          nmea_report_ptr->nmea_sentences[3], nmea_report_ptr->nmea_sentences[4],
                nmea_report_ptr->nmea_sentences[5]);
 
@@ -1404,7 +1400,7 @@ SIDE EFFECTS
 ===========================================================================*/
 static void loc_eng_process_conn_request (const rpc_loc_server_request_s_type *server_request_ptr)
 {
-   LOC_LOGD("loc_event_cb: get loc event location server request, event = %d\n", server_request_ptr->event);
+   ALOGD("loc_event_cb: get loc event location server request, event = %d\n", server_request_ptr->event);
    pthread_mutex_lock(&loc_eng_data.deferred_action_mutex);
 
    if (server_request_ptr->event == RPC_LOC_SERVER_REQUEST_OPEN)
@@ -1446,7 +1442,7 @@ SIDE EFFECTS
 static void loc_eng_process_loc_event (rpc_loc_event_mask_type loc_event,
         rpc_loc_event_payload_u_type* loc_event_payload)
 {
-   LOC_LOGD("loc_eng_process_loc_event: %x\n", (int) loc_event);
+   ALOGD("loc_eng_process_loc_event: %x\n", (int) loc_event);
    // Parsed report
    if ( (loc_event & RPC_LOC_EVENT_PARSED_POSITION_REPORT) &&
          loc_eng_data.mute_session_state != LOC_MUTE_SESS_IN_SESSION)
@@ -1481,7 +1477,7 @@ static void loc_eng_process_loc_event (rpc_loc_event_mask_type loc_event,
       if (loc_event_payload->rpc_loc_event_payload_u_type_u.assist_data_request.event ==
          RPC_LOC_ASSIST_DATA_PREDICTED_ORBITS_REQ)
       {
-         LOC_LOGD("loc_event_cb: XTRA download request");
+         ALOGD("loc_event_cb: XTRA download request");
 
          // Call Registered callback
          if (loc_eng_data.xtra_module_data.download_request_cb != NULL)
@@ -1492,7 +1488,7 @@ static void loc_eng_process_loc_event (rpc_loc_event_mask_type loc_event,
       if (loc_event_payload->rpc_loc_event_payload_u_type_u.assist_data_request.event ==
          RPC_LOC_ASSIST_DATA_TIME_REQ)
       {
-         LOC_LOGD("loc_event_cb: XTRA time download request... not supported");
+         ALOGD("loc_event_cb: XTRA time download request... not supported");
       }
    }
 
@@ -1592,7 +1588,7 @@ static void loc_eng_ioctl_data_open_status(int is_succ)
 #endif /* #if (AMSS_VERSION==3200) */
    conn_open_status_ptr->open_status = is_succ ? RPC_LOC_SERVER_OPEN_SUCCESS : RPC_LOC_SERVER_OPEN_FAIL;
 
-   LOC_LOGD("loc_eng_ioctl for ATL open %s, APN name = [%s]\n",
+   ALOGD("loc_eng_ioctl for ATL open %s, APN name = [%s]\n",
          log_succ_fail_string(is_succ),
          loc_eng_data.apn_name);
 
@@ -1640,7 +1636,7 @@ static void loc_eng_ioctl_data_close_status(int is_succ)
          &ioctl_data,
          LOC_IOCTL_DEFAULT_TIMEOUT,
          NULL);
-   LOC_LOGD("loc_eng_ioctl for ATL close. rc = %d\n",ret_val);
+   ALOGD("loc_eng_ioctl for ATL close. rc = %d\n",ret_val);
 }
 
 /*===========================================================================
@@ -1669,7 +1665,7 @@ static int loc_eng_data_conn_open(const char* apn)
       &ioctl_data.rpc_loc_ioctl_data_u_type_u.conn_open_status;
    boolean                             ret_val;
 
-   LOC_LOGD("loc_eng_data_conn_open APN name = [%s]", apn);
+   ALOGD("loc_eng_data_conn_open APN name = [%s]", apn);
    pthread_mutex_lock(&(loc_eng_data.deferred_action_mutex));
    loc_eng_set_apn(apn);
    /* hold a wake lock while events are pending for deferred_action_thread */
@@ -1701,7 +1697,7 @@ static int loc_eng_data_conn_closed()
 {
    INIT_CHECK("loc_eng_data_conn_closed");
 
-   LOC_LOGD("loc_eng_data_conn_closed");
+   ALOGD("loc_eng_data_conn_closed");
    pthread_mutex_lock(&(loc_eng_data.deferred_action_mutex));
    /* hold a wake lock while events are pending for deferred_action_thread */
    loc_eng_data.acquire_wakelock_cb();
@@ -1731,7 +1727,7 @@ SIDE EFFECTS
 int loc_eng_data_conn_failed()
 {
    INIT_CHECK("loc_eng_data_conn_failed");
-   LOC_LOGD("loc_eng_data_conn_failed");
+   ALOGD("loc_eng_data_conn_failed");
 
    pthread_mutex_lock(&(loc_eng_data.deferred_action_mutex));
    /* hold a wake lock while events are pending for deferred_action_thread */
@@ -1766,7 +1762,7 @@ static int loc_eng_set_apn (const char* apn)
 
    int apn_len;
 
-   LOC_LOGD("loc_eng_set_apn: APN Name = [%s]\n", apn);
+   ALOGD("loc_eng_set_apn: APN Name = [%s]\n", apn);
 
    if (apn != NULL)
    {
@@ -1785,7 +1781,7 @@ static int loc_eng_set_apn (const char* apn)
 
          if (apn_len >= 100)
          {
-            LOC_LOGE("loc_eng_set_apn: error, apn name exceeds maximum lenght of 100 chars\n");
+            ALOGE("loc_eng_set_apn: error, apn name exceeds maximum lenght of 100 chars\n");
             apn_len = 100-1;
          }
 
@@ -1828,7 +1824,7 @@ static boolean resolve_in_addr(const char *host_addr, struct in_addr *in_addr_pt
       if (inet_aton(host_addr, in_addr_ptr) == 0)
       {
          /* IP not valid */
-         LOC_LOGE("DNS query on '%s' failed\n", host_addr);
+         ALOGE("DNS query on '%s' failed\n", host_addr);
          return FALSE;
       }
    }
@@ -1863,13 +1859,13 @@ static int loc_eng_set_server(AGpsType type, const char* hostname, int port)
    boolean                           ret_val;
    char                              url[256];
 
-   LOC_LOGD("loc_eng_set_server, type = %d, hostname = %s, port = %d\n", (int) type, hostname, port);
+   ALOGD("loc_eng_set_server, type = %d, hostname = %s, port = %d\n", (int) type, hostname, port);
 
    // Needed length
    len = snprintf(url, sizeof url, "%s:%u", hostname, (unsigned) port);
    if (len >= sizeof url)
    {
-      LOC_LOGE("loc_eng_set_server, URL too long (len=%d).\n", len);
+      ALOGE("loc_eng_set_server, URL too long (len=%d).\n", len);
       return -1;
    }
 
@@ -1888,18 +1884,18 @@ static int loc_eng_set_server(AGpsType type, const char* hostname, int port)
 #if (AMSS_VERSION==3200)
       server_info_ptr->addr_info.rpc_loc_server_addr_u_type_u.url.addr.addr_val = (char*) url;
       server_info_ptr->addr_info.rpc_loc_server_addr_u_type_u.url.addr.addr_len= len;
-      LOC_LOGD ("loc_eng_set_server, addr = %s\n", server_info_ptr->addr_info.rpc_loc_server_addr_u_type_u.url.addr.addr_val);
+      ALOGD ("loc_eng_set_server, addr = %s\n", server_info_ptr->addr_info.rpc_loc_server_addr_u_type_u.url.addr.addr_val);
 #else
       strlcpy(server_info_ptr->addr_info.rpc_loc_server_addr_u_type_u.url.addr, url,
             sizeof server_info_ptr->addr_info.rpc_loc_server_addr_u_type_u.url.addr);
-      LOC_LOGD ("loc_eng_set_server, addr = %s\n", server_info_ptr->addr_info.rpc_loc_server_addr_u_type_u.url.addr);
+      ALOGD ("loc_eng_set_server, addr = %s\n", server_info_ptr->addr_info.rpc_loc_server_addr_u_type_u.url.addr);
 #endif /* #if (AMSS_VERSION==3200) */
       break;
 
    case AGPS_TYPE_C2K:
       if (!resolve_in_addr(hostname, &addr))
       {
-         LOC_LOGE("loc_eng_set_server, hostname %s cannot be resolved.\n", hostname);
+         ALOGE("loc_eng_set_server, hostname %s cannot be resolved.\n", hostname);
          return -2;
       }
 
@@ -1909,7 +1905,7 @@ static int loc_eng_set_server(AGpsType type, const char* hostname, int port)
       server_info_ptr->addr_info.disc = server_info_ptr->addr_type;
       server_info_ptr->addr_info.rpc_loc_server_addr_u_type_u.ipv4.addr = (uint32_t) htonl(addr.s_addr);
       server_info_ptr->addr_info.rpc_loc_server_addr_u_type_u.ipv4.port = port;
-      LOC_LOGD ("loc_eng_set_server, addr = %X:%d\n",
+      ALOGD ("loc_eng_set_server, addr = %X:%d\n",
             (unsigned int) server_info_ptr->addr_info.rpc_loc_server_addr_u_type_u.ipv4.addr,
             (unsigned int) port);
 
@@ -1919,7 +1915,7 @@ static int loc_eng_set_server(AGpsType type, const char* hostname, int port)
 
       break;
    default:
-      LOC_LOGE("loc_eng_set_server, unknown server type = %d", (int) type);
+      ALOGE("loc_eng_set_server, unknown server type = %d", (int) type);
       return 0; /* note: error not indicated, since JNI doesn't check */
    }
 
@@ -1931,11 +1927,11 @@ static int loc_eng_set_server(AGpsType type, const char* hostname, int port)
 
    if (ret_val != TRUE)
    {
-      LOC_LOGE("loc_eng_set_server failed\n");
+      ALOGE("loc_eng_set_server failed\n");
    }
    else
    {
-      LOC_LOGV("loc_eng_set_server successful\n");
+      ALOGV("loc_eng_set_server successful\n");
    }
 
    return 0;
@@ -1966,7 +1962,7 @@ static int loc_eng_set_server_proxy(AGpsType type, const char* hostname, int por
       loc_eng_set_server(type, hostname, port);
    }
    else {
-      LOC_LOGW("set_server called before init. save the address, type: %d, hostname: %s, port: %d",
+      ALOGW("set_server called before init. save the address, type: %d, hostname: %s, port: %d",
             (int) type, hostname, port);
       switch (type)
       {
@@ -1981,7 +1977,7 @@ static int loc_eng_set_server_proxy(AGpsType type, const char* hostname, int por
          c2k_host_set = 1;
          break;
       default:
-         LOC_LOGE("loc_eng_set_server_proxy, unknown server type = %d", (int) type);
+         ALOGE("loc_eng_set_server_proxy, unknown server type = %d", (int) type);
       }
    }
    return 0;
@@ -2018,7 +2014,7 @@ static void loc_eng_delete_aiding_data_action(GpsAidingData bits)
                             LOC_IOCTL_DEFAULT_TIMEOUT,
                             NULL);
 
-   LOC_LOGV("loc_eng_delete_aiding_data_action: %s\n", log_succ_fail_string(ret_val));
+   ALOGV("loc_eng_delete_aiding_data_action: %s\n", log_succ_fail_string(ret_val));
 }
 
 /*===========================================================================
@@ -2052,11 +2048,11 @@ static void loc_eng_report_agps_status(AGpsType type, AGpsStatusValue status, in
 {
    if (loc_eng_data.agps_status_cb == NULL)
    {
-      LOC_LOGE("loc_eng_report_agps_status, callback not initialized.\n");
+      ALOGE("loc_eng_report_agps_status, callback not initialized.\n");
       return;
    }
 
-   LOC_LOGD("loc_eng_report_agps_status, type = %d, status = %d, ipaddr = %d\n",
+   ALOGD("loc_eng_report_agps_status, type = %d, status = %d, ipaddr = %d\n",
          (int) type, (int) status,  ipaddr);
 
 /*   AGpsStatus agpsStatus = {sizeof(agpsStatus),type, status, ipaddr}; */
@@ -2099,7 +2095,7 @@ static void loc_eng_process_atl_action(AGpsStatusValue status)
    AGpsType                            agps_type;
    boolean                             ret_val;
 
-   LOC_LOGD("loc_eng_process_atl_action, AGpsStatusValue = %d,data on = %d, APN = [%s]\n",
+   ALOGD("loc_eng_process_atl_action, AGpsStatusValue = %d,data on = %d, APN = [%s]\n",
          status,loc_eng_data.data_connection_is_on, loc_eng_data.apn_name);
 
    // Pass a dont care as the AGPS type as it is in any case discarded by GpsLocationProvider
@@ -2145,7 +2141,7 @@ SIDE EFFECTS
 static void loc_eng_deferred_action_thread(void* arg)
 {
    AGpsStatusValue      status;
-   LOC_LOGD("loc_eng_deferred_action_thread started\n");
+   ALOGD("loc_eng_deferred_action_thread started\n");
 
    // make sure we do not run in background scheduling group
    set_sched_policy(gettid(), SP_FOREGROUND);
@@ -2167,10 +2163,10 @@ static void loc_eng_deferred_action_thread(void* arg)
      if (loc_eng_data.deferred_action_flags == 0) {
             // do not hold a wake lock while waiting for an event...
             loc_eng_data.release_wakelock_cb();
-            LOC_LOGD("loc_eng_deferred_action_thread. waiting for events\n");
+            ALOGD("loc_eng_deferred_action_thread. waiting for events\n");
             pthread_cond_wait(&loc_eng_data.deferred_action_cond,
                                 &loc_eng_data.deferred_action_mutex);
-            LOC_LOGD("loc_eng_deferred_action_thread signalled\n");
+            ALOGD("loc_eng_deferred_action_thread signalled\n");
             // but after we are signalled reacquire the wake lock
             // until we are done processing the event.
             loc_eng_data.acquire_wakelock_cb();
@@ -2183,7 +2179,7 @@ static void loc_eng_deferred_action_thread(void* arg)
      // copy anything we need before releasing the mutex
       loc_event = loc_eng_data.loc_event;
       if (loc_event != 0) {
-          LOC_LOGD("loc_eng_deferred_action_thread event %llu\n",loc_event);
+          ALOGD("loc_eng_deferred_action_thread event %llu\n",loc_event);
           memcpy(&loc_event_payload, &loc_eng_data.loc_event_payload, sizeof(loc_event_payload));
           loc_eng_data.loc_event = 0;
       }
@@ -2225,7 +2221,7 @@ static void loc_eng_deferred_action_thread(void* arg)
          loc_eng_ioctl_data_open_status(SUCCESS);
          if(flags & DEFERRED_ACTION_AGPS_DATA_CLOSED)
          {
-            LOC_LOGE("Error condition in the ATL events posted by GpsLocationProvider\n");
+            ALOGE("Error condition in the ATL events posted by GpsLocationProvider\n");
          }
       }else if(flags & DEFERRED_ACTION_AGPS_DATA_CLOSED)
       {
@@ -2251,10 +2247,10 @@ static void loc_eng_deferred_action_thread(void* arg)
           loc_eng_data.agps_request_pending = false;
           if (loc_eng_data.stop_request_pending)
            {
-              LOC_LOGD ("handling deferred stop\n");
+              ALOGD ("handling deferred stop\n");
               if (loc_stop_fix(loc_eng_data.client_handle) != RPC_LOC_API_SUCCESS)
                {
-                   LOC_LOGD ("loc_stop_fix failed!\n");
+                   ALOGD ("loc_stop_fix failed!\n");
                }
            }
            pthread_mutex_unlock(&(loc_eng_data.deferred_stop_mutex));
@@ -2268,7 +2264,7 @@ static void loc_eng_deferred_action_thread(void* arg)
       }
    }
 
-   LOC_LOGD("loc_eng_deferred_action_thread exiting\n");
+   ALOGD("loc_eng_deferred_action_thread exiting\n");
    loc_eng_data.release_wakelock_cb();
    loc_eng_data.deferred_action_thread = 0;
 }

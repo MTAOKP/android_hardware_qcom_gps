@@ -28,8 +28,6 @@
  */
 
 #define LOG_NDDEBUG 0
-#define LOGD
-#define LOGE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -168,11 +166,11 @@ void loc_read_gps_conf(void)
 
    if((gps_conf_fp = fopen(GPS_CONF_FILE, "r")) != NULL)
    {
-      LOC_LOGD("loc_read_gps_conf 50001: using %s", GPS_CONF_FILE);
+      ALOGD("loc_read_gps_conf 50001: using %s", GPS_CONF_FILE);
    }
    else
    {
-      LOC_LOGW("loc_read_gps_conf: no %s file, using defaults", GPS_CONF_FILE);
+      ALOGW("loc_read_gps_conf: no %s file, using defaults", GPS_CONF_FILE);
       return; /* no parameter file */
    }
 
@@ -219,15 +217,15 @@ void loc_read_gps_conf(void)
                         LOC_MAX_PARAM_STRING + 1);
                }
                /* Log INI values */
-               LOC_LOGD("loc_read_gps_conf: PARAM %s = %s\n", param_name, (char*)loc_parameter_table[i].param_ptr);
+               ALOGD("loc_read_gps_conf: PARAM %s = %s\n", param_name, (char*)loc_parameter_table[i].param_ptr);
                break;
             case 'n':
                *((int *)loc_parameter_table[i].param_ptr) = param_value;
                /* Log INI values */
-               LOC_LOGD("loc_read_gps_conf: PARAM %s = %d\n", param_name, param_value);
+               ALOGD("loc_read_gps_conf: PARAM %s = %d\n", param_name, param_value);
                break;
             default:
-               LOC_LOGE("loc_read_gps_conf: PARAM %s parameter type must be n or n", param_name);
+               ALOGE("loc_read_gps_conf: PARAM %s parameter type must be n or n", param_name);
             }
          }
       }

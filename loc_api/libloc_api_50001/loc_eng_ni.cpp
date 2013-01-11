@@ -29,11 +29,6 @@
 
 #define LOG_NDDEBUG 0
 #define LOG_NIDEBUG 0
-#define LOGE
-#define LOGD
-#define LOGW
-#define LOGV
-#define LOGI
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -133,7 +128,7 @@ static void loc_ni_respond
       const rpc_loc_ni_event_s_type *request_pass_back
 )
 {
-   LOC_LOGD("Sending NI response: %s\n", respond_from_enum(resp));
+   ALOGD("Sending NI response: %s\n", respond_from_enum(resp));
 
    rpc_loc_ioctl_data_u_type data;
    rpc_loc_ioctl_callback_s_type callback_payload;
@@ -249,7 +244,7 @@ static int decode_address(char *addr_string, int string_size, const char *data, 
 
    if (data[0] != addr_prefix)
    {
-      LOC_LOGW("decode_address: address prefix is not 0x%x but 0x%x", addr_prefix, data[0]);
+      ALOGW("decode_address: address prefix is not 0x%x but 0x%x", addr_prefix, data[0]);
       addr_string[0] = '\0';
       return 0; // prefix not correct
    }
@@ -316,12 +311,12 @@ static void loc_ni_request_handler(const char *msg, const rpc_loc_ni_event_s_typ
    if (loc_eng_ni_data.notif_in_progress)
    {
       /* XXX Consider sending a NO RESPONSE reply or queue the request */
-      LOC_LOGW("loc_ni_request_handler, notification in progress, new NI request ignored, type: %d",
+      ALOGW("loc_ni_request_handler, notification in progress, new NI request ignored, type: %d",
             ni_req->event);
    }
    else {
       /* Print notification */
-      LOC_LOGD("NI Notification: %s, event: %d", msg, ni_req->event);
+      ALOGD("NI Notification: %s, event: %d", msg, ni_req->event);
 
       pthread_mutex_lock(&loc_eng_ni_data.loc_ni_lock);
 
@@ -462,10 +457,10 @@ static void loc_ni_request_handler(const char *msg, const rpc_loc_ni_event_s_typ
             );
 #endif /* #if (AMSS_VERSION==3200) */
 
-            LOC_LOGV("SUPL NI: client_name: %s len=%d", notif.text, supl_req->client_name.string_len);
+            ALOGV("SUPL NI: client_name: %s len=%d", notif.text, supl_req->client_name.string_len);
          }
          else {
-            LOC_LOGV("SUPL NI: client_name not present.");
+            ALOGV("SUPL NI: client_name not present.");
          }
 
          // Requestor ID
@@ -482,10 +477,10 @@ static void loc_ni_request_handler(const char *msg, const rpc_loc_ni_event_s_typ
                   supl_req->requestor_id.string_len            /* length */
             );
 #endif /* #if (AMSS_VERSION==3200) */
-            LOC_LOGV("SUPL NI: requestor_id: %s len=%d", notif.requestor_id, supl_req->requestor_id.string_len);
+            ALOGV("SUPL NI: requestor_id: %s len=%d", notif.requestor_id, supl_req->requestor_id.string_len);
          }
          else {
-            LOC_LOGV("SUPL NI: requestor_id not present.");
+            ALOGV("SUPL NI: requestor_id not present.");
          }
 
          // Encoding type
@@ -510,24 +505,24 @@ static void loc_ni_request_handler(const char *msg, const rpc_loc_ni_event_s_typ
          break;
 
       default:
-         LOC_LOGE("loc_ni_request_handler, unknown request event: %d", ni_req->event);
+         ALOGE("loc_ni_request_handler, unknown request event: %d", ni_req->event);
          return;
       }
 
       /* Log requestor ID and text for debugging */
-      LOC_LOGI("Notification: notif_type: %d, timeout: %d, default_resp: %d", notif.ni_type, notif.timeout, notif.default_response);
-      LOC_LOGI("              requestor_id: %s (encoding: %d)", notif.requestor_id, notif.requestor_id_encoding);
-      LOC_LOGI("              text: %s text (encoding: %d)", notif.text, notif.text_encoding);
+      ALOGI("Notification: notif_type: %d, timeout: %d, default_resp: %d", notif.ni_type, notif.timeout, notif.default_response);
+      ALOGI("              requestor_id: %s (encoding: %d)", notif.requestor_id, notif.requestor_id_encoding);
+      ALOGI("              text: %s text (encoding: %d)", notif.text, notif.text_encoding);
       if (notif.extras[0])
       {
-         LOC_LOGI("              extras: %s", notif.extras);
+         ALOGI("              extras: %s", notif.extras);
       }
 
       /* For robustness, spawn a thread at this point to timeout to clear up the notification status, even though
        * the OEM layer in java does not do so.
        **/
       loc_eng_ni_data.response_time_left = 5 + (notif.timeout != 0 ? notif.timeout : LOC_NI_NO_RESPONSE_TIME);
-      LOC_LOGI("Automatically sends 'no response' in %d seconds (to clear status)\n", loc_eng_ni_data.response_time_left);
+      ALOGI("Automatically sends 'no response' in %d seconds (to clear status)\n", loc_eng_ni_data.response_time_left);
 
       /* @todo may required when android framework issue is fixed
        * loc_eng_ni_data.callbacks_ref->create_thread_cb("loc_api_ni", loc_ni_thread_proc, NULL);
@@ -537,12 +532,12 @@ static void loc_ni_request_handler(const char *msg, const rpc_loc_ni_event_s_typ
       rc = pthread_create(&loc_eng_ni_data.loc_ni_thread, NULL, loc_ni_thread_proc, NULL);
       if (rc)
       {
-         LOC_LOGE("Loc NI thread is not created.\n");
+         ALOGE("Loc NI thread is not created.\n");
       }
       rc = pthread_detach(loc_eng_ni_data.loc_ni_thread);
       if (rc)
       {
-         LOC_LOGE("Loc NI thread is not detached.\n");
+         ALOGE("Loc NI thread is not detached.\n");
       }
       pthread_mutex_unlock(&loc_eng_ni_data.loc_ni_lock);
 
@@ -568,7 +563,7 @@ RETURN VALUE
 int loc_ni_process_user_response(GpsUserResponseType userResponse)
 {
    int rc=0;
-   LOC_LOGD("NI response from UI: %d", userResponse);
+   ALOGD("NI response from UI: %d", userResponse);
 
    rpc_loc_ni_user_resp_e_type resp;
    switch (userResponse)
@@ -617,22 +612,22 @@ int loc_eng_ni_callback (
       switch (ni_req->event)
       {
       case RPC_LOC_NI_EVENT_VX_NOTIFY_VERIFY_REQ:
-         LOC_LOGI("VX Notification");
+         ALOGI("VX Notification");
          loc_ni_request_handler("VX Notify", ni_req);
          break;
 
       case RPC_LOC_NI_EVENT_UMTS_CP_NOTIFY_VERIFY_REQ:
-         LOC_LOGI("UMTS CP Notification\n");
+         ALOGI("UMTS CP Notification\n");
          loc_ni_request_handler("UMTS CP Notify", ni_req);
          break;
 
       case RPC_LOC_NI_EVENT_SUPL_NOTIFY_VERIFY_REQ:
-         LOC_LOGI("SUPL Notification\n");
+         ALOGI("SUPL Notification\n");
          loc_ni_request_handler("SUPL Notify", ni_req);
          break;
 
       default:
-         LOC_LOGE("Unknown NI event: %x\n", (int) ni_req->event);
+         ALOGE("Unknown NI event: %x\n", (int) ni_req->event);
          break;
       }
    }
@@ -651,14 +646,14 @@ static void* loc_ni_thread_proc(void *threadid)
    struct timeval present_time;
    struct timespec expire_time;
 
-   LOC_LOGD("Starting Loc NI thread...\n");
+   ALOGD("Starting Loc NI thread...\n");
    pthread_mutex_lock(&user_cb_data_mutex);
    /* Calculate absolute expire time */
    gettimeofday(&present_time, NULL);
    expire_time.tv_sec  = present_time.tv_sec;
    expire_time.tv_nsec = present_time.tv_usec * 1000;
    expire_time.tv_sec += loc_eng_ni_data.response_time_left;
-   LOC_LOGD("loc_ni_thread_proc-Time out set for abs time %ld\n", (long) expire_time.tv_sec );
+   ALOGD("loc_ni_thread_proc-Time out set for abs time %ld\n", (long) expire_time.tv_sec );
 
    while (!loc_eng_ni_data.user_response_received)
    {
@@ -666,13 +661,13 @@ static void* loc_ni_thread_proc(void *threadid)
       if (rc == ETIMEDOUT)
       {
          loc_eng_ni_data.resp = RPC_LOC_NI_LCS_NOTIFY_VERIFY_NORESP;
-         LOC_LOGD("loc_ni_thread_proc-Thread time out after valting for specified time. Ret Val %d\n",rc );
+         ALOGD("loc_ni_thread_proc-Thread time out after valting for specified time. Ret Val %d\n",rc );
          break;
       }
    }
       if (loc_eng_ni_data.user_response_received == TRUE)
       {
-         LOC_LOGD("loc_ni_thread_proc-Java layer has sent us a user response and return value from "
+         ALOGD("loc_ni_thread_proc-Java layer has sent us a user response and return value from "
                   "pthread_cond_timedwait = %d\n",rc );
          loc_eng_ni_data.user_response_received = FALSE; /* Reset the user response flag for the next session*/
       }
@@ -704,7 +699,7 @@ SIDE EFFECTS
 ===========================================================================*/
 void loc_eng_ni_init(GpsNiCallbacks *callbacks)
 {
-   LOC_LOGD("loc_eng_ni_init: entered.");
+   ALOGD("loc_eng_ni_init: entered.");
 
    if (!loc_eng_ni_data_init)
    {
@@ -742,11 +737,11 @@ void loc_eng_ni_respond(int notif_id, GpsUserResponseType user_response)
    if (notif_id == loc_eng_ni_data.current_notif_id &&
          loc_eng_ni_data.notif_in_progress)
    {
-      LOC_LOGI("loc_eng_ni_respond: send user response %d for notif %d", user_response, notif_id);
+      ALOGI("loc_eng_ni_respond: send user response %d for notif %d", user_response, notif_id);
       loc_ni_process_user_response(user_response);
    }
    else {
-      LOC_LOGE("loc_eng_ni_respond: notif_id %d mismatch or notification not in progress, response: %d",
+      ALOGE("loc_eng_ni_respond: notif_id %d mismatch or notification not in progress, response: %d",
             notif_id, user_response);
    }
 }

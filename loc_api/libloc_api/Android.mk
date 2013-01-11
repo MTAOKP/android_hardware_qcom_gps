@@ -8,6 +8,7 @@
 
 ifneq ($(BOARD_VENDOR_QCOM_GPS_LOC_API_AMSS_VERSION),50001)
 ifeq ($(BOARD_USES_QCOM_GPS),true)
+
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 

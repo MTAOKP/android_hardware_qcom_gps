@@ -1,4 +1,4 @@
-/* Copyright (c) 2009,2011 Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011, Code Aurora Forum. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -24,72 +24,76 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
-#define LOG_NDDEBUG 0
+#ifndef LOC_API_RPC_GLUE_H
+#define LOC_API_RPC_GLUE_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <math.h>
-#include <pthread.h>
+/* Include RPC headers */
+#ifdef USE_LOCAL_RPC
+#include "rpc_inc/loc_api_common.h"
+#include "rpc_inc/loc_api.h"
+#include "rpc_inc/loc_api_cb.h"
+#endif
 
-#include <rpc/rpc.h>
-#include <loc_api_rpc_glue.h>
+#ifdef USE_QCOM_AUTO_RPC
+#include "loc_api_rpcgen_rpc.h"
+#include "loc_api_rpcgen_common_rpc.h"
+#include "loc_api_rpcgen_cb_rpc.h"
+#endif
 
-#include <hardware/gps.h>
+/* Boolean */
+/* Other data types in comdef.h are defined in rpc stubs, so fix it here */
+typedef unsigned char boolean;
+#define TRUE 1
+#define FALSE 0
 
-#include <loc_eng.h>
+#include "rpc_inc/loc_api_fixup.h"
+#include "rpc_inc/loc_api_sync_call.h"
 
-#define LOG_TAG "libloc"
-#include <utils/Log.h>
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
-// comment this out to enable logging
-// #undef LOGD
-// #define LOGD(...) {}
+extern int loc_api_glue_init(void);
+extern int loc_api_null(void);
 
-/*===========================================================================
+typedef int32 (loc_event_cb_f_type)(
+      rpc_loc_client_handle_type            loc_handle,             /* handle of the client */
+      rpc_loc_event_mask_type               loc_event,              /* event mask           */
+      const rpc_loc_event_payload_u_type*   loc_event_payload       /* payload              */
+);
 
-FUNCTION    loc_eng_ioctl
+extern rpc_loc_client_handle_type loc_open(
+      rpc_loc_event_mask_type       event_reg_mask,
+      loc_event_cb_f_type       *event_callback
+);
 
-DESCRIPTION
-   This function calls loc_ioctl and waits for the callback result before
-   returning back to the user.
+extern int32 loc_close
+(
+      rpc_loc_client_handle_type handle
+);
 
-DEPENDENCIES
-   N/A
+extern int32 loc_start_fix
+(
+      rpc_loc_client_handle_type handle
+);
 
-RETURN VALUE
-   TRUE                 if successful
-   FALSE                if failed
+extern int32 loc_stop_fix
+(
+      rpc_loc_client_handle_type handle
+);
 
-SIDE EFFECTS
-   N/A
-
-===========================================================================*/
-boolean loc_eng_ioctl
+extern int32 loc_ioctl
 (
       rpc_loc_client_handle_type           handle,
       rpc_loc_ioctl_e_type                 ioctl_type,
-      rpc_loc_ioctl_data_u_type*           ioctl_data_ptr,
-      uint32                               timeout_msec,
-      rpc_loc_ioctl_callback_s_type       *cb_data_ptr
-)
-{
-   int ret_val = RPC_LOC_API_SUCCESS;
+      rpc_loc_ioctl_data_u_type*           ioctl_data
+);
 
-   ALOGD("loc_eng_ioctl called: client = %d, ioctl_type = %s\n", (int32) handle,
-         loc_get_ioctl_type_name(ioctl_type));
-
-   ret_val = loc_api_sync_ioctl(handle, ioctl_type, ioctl_data_ptr, timeout_msec, cb_data_ptr);
-
-   ALOGD("loc_eng_ioctl result: client = %d, ioctl_type = %s, %s\n",
-         (int32) handle,
-         loc_get_ioctl_type_name(ioctl_type),
-         loc_get_ioctl_status_name(ret_val) );
-
-   return ret_val == RPC_LOC_API_SUCCESS;
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* LOC_API_RPC_GLUE_H */

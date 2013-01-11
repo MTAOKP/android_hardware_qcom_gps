@@ -39,7 +39,6 @@
 
 /* Logging */
 #define LOG_TAG "loc_api_rpc_glue"
-#define LOGE
 // #define LOG_NDDEBUG 0
 #include <utils/Log.h>
 
@@ -304,7 +303,7 @@ int loc_api_select_callback(
 
    if (select_id < 0)
    {
-      LOGE("loc_select_callback: buffer full for this synchronous Loc API call, mask: 0x%x",
+      ALOGE("loc_select_callback: buffer full for this synchronous Loc API call, mask: 0x%x",
             (unsigned) event_mask);
       return -1;
    }
@@ -389,7 +388,7 @@ int loc_api_wait_callback(
 {
    if (select_id < 0 || select_id >= loc_sync_data.size || !loc_sync_data.slot_in_use[select_id])
    {
-      LOGE("loc_wait_callback: invalid select_id: %d", select_id);
+      ALOGE("loc_wait_callback: invalid select_id: %d", select_id);
       return RPC_LOC_API_INVALID_PARAMETER;
    }
 
@@ -487,9 +486,9 @@ int loc_api_sync_ioctl
 
    if (select_id >= 0)
    {
-      LOGE("handle %d", handle);
+      ALOGE("handle %d", handle);
       rc =  loc_ioctl(handle, ioctl_type, ioctl_data_ptr);
-      LOGE("loc_api_sync_ioctl: select_id = %d, loc_ioctl returned %d\n", select_id, rc);
+      ALOGE("loc_api_sync_ioctl: select_id = %d, loc_ioctl returned %d\n", select_id, rc);
 
       if (rc != RPC_LOC_API_SUCCESS)
       {
@@ -500,7 +499,7 @@ int loc_api_sync_ioctl
          if ((rc = loc_api_wait_callback(select_id, timeout_msec / 1000, NULL, &callback_data)) != 0)
          {
             // Callback waiting failed
-            LOGE("loc_api_sync_ioctl: loc_api_wait_callback failed, returned %d (select id %d)\n", rc, select_id);
+            ALOGE("loc_api_sync_ioctl: loc_api_wait_callback failed, returned %d (select id %d)\n", rc, select_id);
          }
          else
          {
@@ -508,7 +507,7 @@ int loc_api_sync_ioctl
             if (callback_data.status != RPC_LOC_API_SUCCESS)
             {
                rc = callback_data.status;
-               LOGE("loc_api_sync_ioctl: XX IOCTL result failed, result: %d (select id %d)\n", rc, select_id);
+               ALOGE("loc_api_sync_ioctl: XX IOCTL result failed, result: %d (select id %d)\n", rc, select_id);
             }
          } /* wait callback */
       } /* loc_ioctl */

@@ -41,7 +41,7 @@ void loc_eng_if_wakeup(int if_req, int ipaddr);
 
 int loc_eng_dmn_conn_loc_api_server_if_request_handler(struct ctrl_msgbuf *pmsg, int len)
 {
-    LOC_LOGD("%s:%d]\n", __func__, __LINE__);
+    ALOGD("%s:%d]\n", __func__, __LINE__);
 #ifndef DEBUG_DMN_LOC_API
     loc_eng_if_wakeup(1, pmsg->cmsg.cmsg_if_request.ipaddr);
 #endif
@@ -50,7 +50,7 @@ int loc_eng_dmn_conn_loc_api_server_if_request_handler(struct ctrl_msgbuf *pmsg,
 
 int loc_eng_dmn_conn_loc_api_server_if_release_handler(struct ctrl_msgbuf *pmsg, int len)
 {
-    LOC_LOGD("%s:%d]\n", __func__, __LINE__);
+    ALOGD("%s:%d]\n", __func__, __LINE__);
 #ifndef DEBUG_DMN_LOC_API
     loc_eng_if_wakeup(0, INADDR_NONE);
 #endif

@@ -29,6 +29,8 @@
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
+$(shell mkdir -p $(OUT)/obj/SHARED_LIBRARIES/libcommondefs_intermediates/)
+$(shell touch $(OUT)/obj/SHARED_LIBRARIES/libcommondefs_intermediates/export_includes)
 
 # functions
 LOC_RPCGEN_APIS_PATH := $(TARGET_OUT_INTERMEDIATES)/loc_api/libloc_api_rpcgen_intermediates

@@ -28,9 +28,6 @@
  */
 
 #define LOG_NDDEBUG 0
-#define LOGD
-#define LOGE
-#define LOGV
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -265,15 +262,15 @@ static const char* log_final_interm_string(int is_final)
 static void log_parsed_report(const rpc_loc_parsed_position_s_type *parsed_report)
 {
    rpc_loc_session_status_e_type status = parsed_report->session_status;
-   LOC_LOGD("Session status: %s   Valid mask: 0x%X\n",
+   ALOGD("Session status: %s   Valid mask: 0x%X\n",
          loc_get_sess_status_name(status),
          (uint) parsed_report->valid_mask);
-   LOC_LOGD("Latitude:  %.7f (%s)\n", parsed_report->latitude,
+   ALOGD("Latitude:  %.7f (%s)\n", parsed_report->latitude,
          log_final_interm_string(
                (parsed_report->valid_mask & RPC_LOC_POS_VALID_LATITUDE) &&
                parsed_report->session_status == RPC_LOC_SESS_STATUS_SUCCESS));
-   LOC_LOGD("Longitude: %.7f\n", parsed_report->longitude);
-   LOC_LOGD("Accuracy: %.7f\n", parsed_report->hor_unc_circular);
+   ALOGD("Longitude: %.7f\n", parsed_report->longitude);
+   ALOGD("Accuracy: %.7f\n", parsed_report->hor_unc_circular);
 }
 
 /* Logs status report */
@@ -282,12 +279,12 @@ static void log_status_report(const rpc_loc_status_event_s_type *status_event)
    rpc_loc_status_event_e_type event = status_event->event;
    switch (event) {
    case RPC_LOC_STATUS_EVENT_ENGINE_STATE:
-      LOC_LOGD("Engine state: %s\n",
+      ALOGD("Engine state: %s\n",
             loc_get_engine_state_name(
                   status_event->payload.rpc_loc_status_event_payload_u_type_u.engine_state));
       break;
    case RPC_LOC_STATUS_EVENT_FIX_SESSION_STATE:
-      LOC_LOGD("Fix session state: %s\n",
+      ALOGD("Fix session state: %s\n",
             loc_get_fix_session_state_name(
                   status_event->payload.rpc_loc_status_event_payload_u_type_u.fix_session_state));
       break;
@@ -304,34 +301,34 @@ static void log_satellite_report(const rpc_loc_gnss_info_s_type *gnss)
 {
    if (gnss->valid_mask & RPC_LOC_GNSS_INFO_VALID_POS_DOP)
    {
-      LOC_LOGV("position dop: %.3f\n", (float) gnss->position_dop);
+      ALOGV("position dop: %.3f\n", (float) gnss->position_dop);
    }
    if (gnss->valid_mask & RPC_LOC_GNSS_INFO_VALID_HOR_DOP)
    {
-      LOC_LOGV("horizontal dop: %.3f\n", (float) gnss->horizontal_dop);
+      ALOGV("horizontal dop: %.3f\n", (float) gnss->horizontal_dop);
    }
    if (gnss->valid_mask & RPC_LOC_GNSS_INFO_VALID_VERT_DOP)
    {
-      LOC_LOGV("vertical dop: %.3f\n", (float) gnss->vertical_dop);
+      ALOGV("vertical dop: %.3f\n", (float) gnss->vertical_dop);
    }
    if (gnss->valid_mask & RPC_LOC_GNSS_INFO_VALID_ALTITUDE_ASSUMED)
    {
-      LOC_LOGV("altitude assumed: %d\n", (int) gnss->altitude_assumed);
+      ALOGV("altitude assumed: %d\n", (int) gnss->altitude_assumed);
    }
    if (gnss->valid_mask & RPC_LOC_GNSS_INFO_VALID_SV_COUNT)
    {
-      LOC_LOGD("sv count: %d\n", (int) gnss->sv_count);
+      ALOGD("sv count: %d\n", (int) gnss->sv_count);
    }
    if (gnss->valid_mask & RPC_LOC_GNSS_INFO_VALID_SV_LIST)
    {
-      LOC_LOGV("sv list: ");
+      ALOGV("sv list: ");
 
       if (gnss->sv_count)
       {
-         LOC_LOGV("\n\tsys\tprn\thlth\tproc\teph\talm\telev\tazi\tsnr\n");
+         ALOGV("\n\tsys\tprn\thlth\tproc\teph\talm\telev\tazi\tsnr\n");
       }
       else {
-         LOC_LOGV("empty\n");
+         ALOGV("empty\n");
       }
 
       int i;
@@ -339,7 +336,7 @@ static void log_satellite_report(const rpc_loc_gnss_info_s_type *gnss)
       {
          const rpc_loc_sv_info_s_type *sv = &gnss->sv_list.sv_list_val[i];
          rpc_loc_sv_info_valid_mask_type mask = sv->valid_mask;
-         LOC_LOGV("  %d: \t%d\t%d\t%d\t%d\t%d\t%d\t%.3f\t%.3f\t%.3f\n", i,
+         ALOGV("  %d: \t%d\t%d\t%d\t%d\t%d\t%d\t%.3f\t%.3f\t%.3f\n", i,
                CHECK_MASK(int,   sv->system,         mask, RPC_LOC_SV_INFO_VALID_SYSTEM),
                CHECK_MASK(int,   sv->prn,            mask, RPC_LOC_SV_INFO_VALID_PRN),
                CHECK_MASK(int,   sv->health_status,  mask, RPC_LOC_SV_INFO_VALID_HEALTH_STATUS),
@@ -398,7 +395,7 @@ int loc_eng_callback_log_header(
    }
 
    /* Event header */
-   LOC_LOGD("\nEvent %s (client %d)\n",
+   ALOGD("\nEvent %s (client %d)\n",
          /* loc_eng_get_time(time_string), */
          event_name,
          (int) client_handle);

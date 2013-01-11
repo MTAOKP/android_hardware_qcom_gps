@@ -28,8 +28,6 @@
  */
 
 #define LOG_NDDEBUG 0
-#define LOGE
-#define LOGD
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -89,7 +87,7 @@ static int qct_loc_eng_xtra_init (GpsXtraCallbacks* callbacks)
 
    xtra_module_data_ptr = &loc_eng_data.xtra_module_data;
    xtra_module_data_ptr->download_request_cb = callbacks->download_request_cb;
-   LOC_LOGD("qct_loc_eng_xtra_init called");
+   ALOGD("qct_loc_eng_xtra_init called");
 
    return 0;
 }
@@ -124,11 +122,11 @@ static int qct_loc_eng_inject_xtra_data(char* data, int length)
    rpc_loc_predicted_orbits_data_s_type *predicted_orbits_data_ptr;
 
 #ifdef	BOARD_VENDOR_QCOM_GPS_HAS_BROKEN_XTRA
-   LOC_LOGD("qct_loc_eng_inject_xtra_data - DISABLED");
+   ALOGD("qct_loc_eng_inject_xtra_data - DISABLED");
 	return RPC_LOC_API_SUCCESS;
 #endif
 
-   LOC_LOGD("qct_loc_eng_inject_xtra_data, xtra size = %d, data ptr = 0x%x\n", length, (int) data);
+   ALOGD("qct_loc_eng_inject_xtra_data, xtra size = %d, data ptr = 0x%x\n", length, (int) data);
 
    predicted_orbits_data_ptr = &ioctl_data.rpc_loc_ioctl_data_u_type_u.predicted_orbits_data;
    predicted_orbits_data_ptr->format_type = RPC_LOC_PREDICTED_ORBITS_XTRA;
@@ -151,7 +149,7 @@ static int qct_loc_eng_inject_xtra_data(char* data, int length)
       predicted_orbits_data_ptr->data_ptr.data_ptr_len = predicted_orbits_data_ptr->part_len;
       predicted_orbits_data_ptr->data_ptr.data_ptr_val = data + len_injected;
 
-      LOC_LOGD("qct_loc_eng_inject_xtra_data, part %d/%d, len = %d, total = %d\n",
+      ALOGD("qct_loc_eng_inject_xtra_data, part %d/%d, len = %d, total = %d\n",
             predicted_orbits_data_ptr->part,
             total_parts,
             predicted_orbits_data_ptr->part_len,
@@ -167,7 +165,7 @@ static int qct_loc_eng_inject_xtra_data(char* data, int length)
          if (rpc_ret_val != RPC_LOC_API_SUCCESS)
          {
             ret_val = EIO; // return error
-            LOC_LOGE("loc_ioctl for xtra error: %s\n", loc_get_ioctl_status_name(rpc_ret_val));
+            ALOGE("loc_ioctl for xtra error: %s\n", loc_get_ioctl_status_name(rpc_ret_val));
             break;
          }
       }
@@ -186,7 +184,7 @@ static int qct_loc_eng_inject_xtra_data(char* data, int length)
       }
 
       len_injected += predicted_orbits_data_ptr->part_len;
-      LOC_LOGD("loc_ioctl XTRA injected length: %d\n", len_injected);
+      ALOGD("loc_ioctl XTRA injected length: %d\n", len_injected);
    }
 
    return ret_val;
@@ -222,7 +220,7 @@ int loc_eng_inject_xtra_data_in_buffer()
             loc_eng_data.xtra_module_data.xtra_data_len))
       {
          // FIXME gracefully handle injection error
-         LOC_LOGE("XTRA injection failed.");
+         ALOGE("XTRA injection failed.");
          rc = -1;
       }
 
